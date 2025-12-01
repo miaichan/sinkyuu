@@ -76,7 +76,8 @@ def index():
     normalize(quiz_questions)
     normalize(users)
 
-    return render_template("index.html", problems=quiz_questions, users=users, error=error)
+    # Pass quiz_questions as the template expects that variable name
+    return render_template("index.html", quiz_questions=quiz_questions, users=users, error=error)
 
 
 if __name__ == "__main__":

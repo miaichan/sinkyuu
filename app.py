@@ -46,7 +46,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    problems = []
+    quiz_questions = []
     users = []
     error = None
 
@@ -54,11 +54,11 @@ def index():
         with get_conn() as conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    "SELECT id, title, description, level, created_at FROM problems ORDER BY id LIMIT 100"
+                    "SELECT id, category_id, question_text, audio_path, difficulty,created_at FROM quiz_questions"
                 )
-                problems = cur.fetchall()
+                quiz_questions = cur.fetchall()
                 cur.execute(
-                    "SELECT id, username, email, created_at FROM users ORDER BY id LIMIT 100"
+                    "SELECT id, username, email, created_at FROM users"
                 )
                 users = cur.fetchall()
     except Exception as e:
@@ -76,7 +76,7 @@ def index():
     normalize(problems)
     normalize(users)
 
-    return render_template("index.html", problems=problems, users=users, error=error)
+    return render_template("index.html", problems=quiz_questions, users=users, error=error)
 
 
 if __name__ == "__main__":

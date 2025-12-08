@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from psycopg2 import pool as pg_pool
+from werkzeug.security import generate_password_hash
 from contextlib import contextmanager
 from datetime import datetime
 
@@ -57,6 +58,7 @@ app.secret_key = os.getenv("FLASK_SECRET", "dev-secret")
 def index():
     quiz_questions = []
     users = []
+    quiz_choices = []
     error = None
 
     try:
@@ -67,9 +69,13 @@ def index():
                 )
                 quiz_questions = cur.fetchall()
                 cur.execute(
-                    "SELECT id, username, email, created_at FROM users"
+                    "SELECT id, name, email, password_hash, created_at FROM users"
                 )
                 users = cur.fetchall()
+                cur.execute(
+                    "SELECT id, question_id, choice_text, is_correct FROM quiz_choices"
+                )
+                quiz_choices = cur.fetchall()
     except Exception as e:
         error = str(e)
 
@@ -84,9 +90,10 @@ def index():
 
     normalize(quiz_questions)
     normalize(users)
+    normalize(quiz_choices)
 
     # Pass quiz_questions as the template expects that variable name
-    return render_template("index.html", quiz_questions=quiz_questions, users=users, error=error)
+    return render_template("index.html", quiz_questions=quiz_questions, users=users, quiz_choices=quiz_choices, error=error)
 
 
 # --- CRUD routes for quiz_questions -------------------------------------------------
@@ -163,14 +170,18 @@ def quiz_delete(quiz_id):
 @app.route("/user/new", methods=("GET", "POST"))
 def user_new():
     if request.method == "POST":
-        username = request.form.get("username") or ""
+        name = request.form.get("name") or ""
         email = request.form.get("email") or ""
+        password = request.form.get("password") or None
         try:
             with get_conn() as conn:
                 with conn.cursor() as cur:
+                    pw_hash = None
+                    if password:
+                        pw_hash = generate_password_hash(password)
                     cur.execute(
-                        "INSERT INTO users (username, email, created_at) VALUES (%s, %s, now())",
-                        (username, email),
+                        "INSERT INTO users (name, email, password_hash, created_at) VALUES (%s, %s, %s, now())",
+                        (name, email, pw_hash),
                     )
                     conn.commit()
             flash("ユーザーを作成しました。", "success")
@@ -183,15 +194,23 @@ def user_new():
 @app.route("/user/<int:user_id>/edit", methods=("GET", "POST"))
 def user_edit(user_id):
     if request.method == "POST":
-        username = request.form.get("username") or ""
+        name = request.form.get("name") or ""
         email = request.form.get("email") or ""
+        password = request.form.get("password") or None
         try:
             with get_conn() as conn:
                 with conn.cursor() as cur:
-                    cur.execute(
-                        "UPDATE users SET username=%s, email=%s WHERE id=%s",
-                        (username, email, user_id),
-                    )
+                    if password:
+                        pw_hash = generate_password_hash(password)
+                        cur.execute(
+                            "UPDATE users SET name=%s, email=%s, password_hash=%s WHERE id=%s",
+                            (name, email, pw_hash, user_id),
+                        )
+                    else:
+                        cur.execute(
+                            "UPDATE users SET name=%s, email=%s WHERE id=%s",
+                            (name, email, user_id),
+                        )
                     conn.commit()
             flash("ユーザーを更新しました。", "success")
         except Exception as ex:
@@ -202,7 +221,7 @@ def user_edit(user_id):
     try:
         with get_conn() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT id, username, email FROM users WHERE id=%s", (user_id,))
+                cur.execute("SELECT id, name, email, password_hash, created_at FROM users WHERE id=%s", (user_id,))
                 user = cur.fetchone()
     except Exception as ex:
         flash(f"読み込みに失敗しました: {ex}", "danger")
@@ -221,6 +240,10 @@ def user_delete(user_id):
     except Exception as ex:
         flash(f"削除に失敗しました: {ex}", "danger")
     return redirect(url_for("index"))
+
+@app.route("/test")
+def test():
+    return render_template("[index.html")
 
 
 if __name__ == "__main__":

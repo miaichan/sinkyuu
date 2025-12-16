@@ -1,7 +1,7 @@
 // debug用のコードです。フロント担当の方はこのフォルダを消しても構いません。//
 
 async function loadQuestion() {
-    const res = await fetch("/api/question");
+    const res = await fetch("/api/question"); // fetchがダミー用のリンクになってるので注意 要app.pyのAPIリンク参照 //
     const q = await res.json();
     const questionDiv = document.getElementById("question");
     const choicesDiv = document.getElementById("choices");

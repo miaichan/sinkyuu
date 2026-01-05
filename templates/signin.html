@@ -12,12 +12,13 @@
       <h1>Sign in</h1>
 
       <form action="/signin" method="POST">
-        <label for="userid"></label><br />
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}" />
+        <label for="email"></label><br />
         <input
           type="text"
-          id="userid"
-          name="userid"
-          placeholder="User ID"
+          id="email"
+          name="email"
+          placeholder="Email or ID"
           required
         /><br />
 

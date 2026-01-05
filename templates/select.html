@@ -11,6 +11,10 @@
     <div class="select" style="background-color: #faf8f2">
       <h1>Select a question</h1>
 
+      <button id="profileBtn" class="main-btn" onclick="window.location.href='/profile'">
+        Profile
+      </button>
+
       <button class="main-btn">Cashier Service</button>
       <button class="main-btn">Conversation during Stocking</button>
       <button class="main-btn">Handling Complaints</button>
@@ -38,6 +42,7 @@
       let selectedLevel = "";
 
       mainButtons.forEach((btn) => {
+        if (btn.id === "profileBtn") return;
         btn.addEventListener("click", () => {
           const existing = btn.nextElementSibling;
           if (existing && existing.classList.contains("sub-btn-wrapper")) {

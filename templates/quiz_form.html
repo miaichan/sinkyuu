@@ -14,6 +14,7 @@
 <body>
     <h1>{% if quiz %}問題を編集{% else %}新しい問題を作成{% endif %}</h1>
     <form method="post">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}" />
         <label>Category ID
             <input type="number" name="category_id" value="{{ quiz.category_id if quiz }}">
         </label>

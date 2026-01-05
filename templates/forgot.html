@@ -11,7 +11,22 @@
     <div class="forgot" style="background-color: #faf8f2">
       <h1>Forgot your password?</h1>
 
+      <p style="max-width: 420px; margin: 8px 0 0; font-size: 14px; line-height: 1.4;">
+        ※これはローカル開発用の実装です。メール送信は未実装のため、リセットリンクをこの画面に表示します。
+      </p>
+
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div style="max-width: 420px; margin: 12px 0; color: #b00020; word-break: break-all;">
+            {% for message in messages %}
+              <div>{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
       <form action="/forgot" method="POST">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}" />
         <label for="email"></label><br />
         <input
           type="email"

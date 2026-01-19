@@ -203,7 +203,7 @@ def init_db():
         """
     )
 
-    # データ正規化（emailは小文字、nameは空文字をNULLへ）
+    # データ正規化（emailは小文字、nameは空文字を空文字のまま維持）
     cur.execute(
         """
         UPDATE users
@@ -214,8 +214,10 @@ def init_db():
     cur.execute(
         """
         UPDATE users
-        SET name = NULLIF(BTRIM(name), '')
-        WHERE name IS NOT NULL
+        SET name = CASE
+            WHEN BTRIM(name) = '' THEN ''
+            ELSE name
+        END
         """
     )
 

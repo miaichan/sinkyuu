@@ -1235,7 +1235,7 @@ def question():
                 q.question_text,
                 q.explanation,
                 c.name AS category_name,
-                ci.image_data
+                ci.image_url
             FROM quiz_questions q
             JOIN quiz_categories c
                 ON q.category_id = c.id
@@ -1290,6 +1290,17 @@ def question():
 
     correct_choice_id = next(c["id"] for c in choices if c["is_correct"])
 
+    image_url = question["image_url"]
+
+    if image_url:
+        image_url = (
+            image_url
+            .replace("\n", "")
+            .replace("\r", "")
+            .replace(" ", "")
+        )
+
+
     return render_template(
         "question.html",
         finished=False,
@@ -1299,7 +1310,8 @@ def question():
             "question_text": question["question_text"],
             "correct_choice_id": correct_choice_id,
             "explanation": question["explanation"],
-            "image_url": question["image_data"],
+            "image_url": question["image_url"],
+            "image_url": image_url,
         },
         choices=choices,
         genre=genre_en,
@@ -1315,23 +1327,6 @@ def debug_categories():
         cur.execute("SELECT id, name FROM quiz_categories;")
         rows = cur.fetchall()
     return str(rows)
-
-
-@app.route("/db-test")
-def db_test():
-    try:
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT version();")
-        result = cur.fetchone()
-        cur.close()
-        conn.close()
-        if not result:
-            return "DB 接続成功！<br>(version取得に失敗しました)"
-        return f"DB 接続成功！<br>{result[0]}"
-    except Exception as e:
-        return f"DB 接続失敗 ❌<br>{e}"
-
 
 # =============================
 # 実行
